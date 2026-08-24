@@ -1,3 +1,5 @@
+import { MotionLayer } from "@/components/motion-layer";
+import "./motion-layer.css";
 import { SmoothScroll } from "@/components/smooth-scroll";
 import type { Metadata } from "next";
 import { LocaleProvider } from "@/lib/i18n";
@@ -21,7 +23,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="uk">
+    <html style={{ "--motion-duration": "0.8s", "--motion-stagger": "0.07s", "--motion-shift": "32px", "--motion-ease": "cubic-bezier(0.7, 0, 0.15, 1)" } as React.CSSProperties} lang="uk">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -33,7 +35,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="bg-[hsl(220,20%,9%)] text-[hsl(220,10%,94%)] antialiased selection:bg-[hsl(38,90%,50%)] selection:text-[hsl(220,20%,9%)]">
         <LocaleProvider>{children}</LocaleProvider>
-      <SmoothScroll /></body>
+      <SmoothScroll />  <MotionLayer />
+      </body>
     </html>
   );
 }
