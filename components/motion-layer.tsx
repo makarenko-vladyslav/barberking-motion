@@ -6,33 +6,50 @@ import { useEffect } from "react";
 const FAILSAFE_MS = 2500;
 
 /**
- * Reveals content as it is scrolled to — the children of a section, and the
- * cards inside every grid within it.
+ * Content that carries its own entrance: a heading, a line of copy, a picture, a
+ * button, a list item. `<ul>` and `<ol>` are absent on purpose — a list revealed
+ * whole is one slab, while its items cascade.
  *
- * Three earlier attempts worked through the markup and all failed the same way:
- * they depended on how the model happened to write it. A 30-mechanic directive
- * produced zero mechanics; parameterised primitives were never handed props;
- * rewriting `<Reveal>` calls by regular expression reached one call site in
- * twenty-seven, because the other twenty-six wrap a single container. That last
- * one is exactly what the owner saw: "the animation is on the whole section, not
- * on the content in it".
+ * Links need a class to qualify. A bare `<a>` is usually inline inside a
+ * paragraph, and the paragraph is already an item; a classed one is a button or
+ * a card link, which is a piece of the page in its own right.
+ */
+const CONTENT =
+  "h1,h2,h3,h4,h5,h6,p,li,img,picture,video,figure,blockquote,button,a[class],table,form,iframe,canvas,svg";
+
+/** Chrome that must not fade: a fixed bar mid-fade over content reads as a bug. */
+const SKIP = "header,nav";
+
+/**
+ * Structure, never an item. Sections are alike siblings of each other, so
+ * without this the page's own sections read as a set and each one arrives as a
+ * slab — the very thing this layer exists to stop.
+ */
+const LANDMARK = "body,main,section,header,footer,aside,nav";
+
+/**
+ * Reveals content as it is scrolled to.
  *
- * So this works a level below the markup. It finds GROUPS — a container with
- * several children, which is what a gallery, a price list or a service grid
- * always is — numbers those children, and reveals each one as it is reached. No
- * class names are read and no file names are trusted: a component called
- * `Gallery` routinely holds three bullet points, and one called `Advantages` a
- * photo wall.
+ * Four attempts at doing this through the markup failed for the same reason:
+ * they depended on the shape the model happened to write. The last one — stage
+ * a container, cascade its direct children — was measured on a real site and
+ * reached 26 of 158 content elements. Everything living one wrapper deeper than
+ * the rule expected simply appeared, which is what the owner saw as "half the
+ * site still has no animation".
  *
- * Two decisions carry the whole thing, and both were bought with a failure:
+ * So the rule now names what to move instead of describing where it sits: the
+ * content tags themselves, plus any set of alike siblings (a grid of cards, a
+ * list of prices). Walking stops at whatever is marked, so a card arrives as a
+ * card rather than as three separate pieces of itself.
  *
- *  - each ITEM is observed, never its container. A barbershop's ticker is a
+ * Two decisions carry the rest, and both were bought with a failure:
+ *
+ *  - each element is observed, never its container. A barbershop's ticker is a
  *    2623px-wide strip: an observer watching it never fires, so its words were
  *    hidden and stayed hidden. The words themselves are on screen and fire fine.
  *  - a timer reveals anything still hidden after FAILSAFE_MS. Deciding "is this
- *    element already animated?" is a race — framer-motion writes its transform
- *    after this effect runs — and a race is not something to defend content with.
- *    The timer is a guarantee rather than another guess.
+ *    already animated?" is a race — framer-motion writes its transform after
+ *    this effect runs — and a race is not something to defend content with.
  *
  * Nothing is hidden until JavaScript has marked it. If this never runs, the page
  * is simply static: content stuck at `opacity: 0` is the one failure mode that
@@ -40,33 +57,24 @@ const FAILSAFE_MS = 2500;
  */
 export function MotionLayer() {
   useEffect(() => {
-    const items: HTMLElement[] = [];
-    const groups = findMotionGroups(document);
-
-    for (const group of groups) {
-      // A child that is itself a group must not also arrive as a slab: its cards
-      // are what the reader sees moving, and animating both is card-in-card.
-      const children = animatableChildren(group).filter((c) => !groups.has(c));
-      if (children.length < 2) continue; // nothing left to cascade
-
-      group.dataset.motionRole = inferRole(group);
-      children.forEach((child, i) => {
-        child.dataset.motionItem = "";
-        child.style.setProperty("--motion-index", String(i));
-        items.push(child);
-      });
-    }
+    const items = findMotionItems(document);
     if (items.length === 0) return;
 
-    const reveal = (el: HTMLElement) => {
-      el.dataset.motionItem = "seen";
-    };
+    for (const { el, index } of items) {
+      el.dataset.motionItem = "";
+      el.style.setProperty("--motion-index", String(index));
+      // Timing is set on the parent, where custom properties inherit down to
+      // every sibling at once: a wall of photographs cascades faster than a
+      // column of quotes, and a hero takes its time.
+      const parent = el.parentElement;
+      if (parent && !parent.dataset.motionRole) parent.dataset.motionRole = inferRole(parent);
+    }
 
     const io = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           if (!entry.isIntersecting) continue;
-          reveal(entry.target as HTMLElement);
+          (entry.target as HTMLElement).dataset.motionItem = "seen";
           io.unobserve(entry.target); // once — re-firing on scroll-back is nausea
         }
       },
@@ -75,10 +83,10 @@ export function MotionLayer() {
       { rootMargin: "0px 0px -8% 0px", threshold: 0.01 },
     );
 
-    for (const item of items) io.observe(item);
+    for (const { el } of items) io.observe(el);
 
     const failsafe = setTimeout(() => {
-      for (const item of items) reveal(item);
+      for (const { el } of items) el.dataset.motionItem = "seen";
       io.disconnect();
     }, FAILSAFE_MS);
 
@@ -91,77 +99,85 @@ export function MotionLayer() {
   return null;
 }
 
+/** An element to reveal, and its position among the siblings it arrives with. */
+export interface MotionItem {
+  readonly el: HTMLElement;
+  readonly index: number;
+}
+
 /**
- * Every container in the document whose children should arrive one after
- * another. Exported so the behaviour can be tested against real markup rather
- * than asserted about in prose.
+ * Everything on the page that should arrive rather than appear.
+ *
+ * Exported so the behaviour can be tested against real markup instead of being
+ * asserted about in prose.
  */
-export function findMotionGroups(root: Document | HTMLElement): Set<HTMLElement> {
-  const groups = new Set<HTMLElement>();
-  for (const section of root.querySelectorAll<HTMLElement>("section")) {
-    collectGroups(section, groups);
-  }
-  return groups;
+export function findMotionItems(root: Document | HTMLElement): MotionItem[] {
+  const items: MotionItem[] = [];
+  const doc = "body" in root ? root.body : root;
+  if (doc) walk(doc, items, 0);
+  return items;
 }
 
 /** Element children only — text nodes and comments cannot be animated. */
-function kids(el: HTMLElement): HTMLElement[] {
+function kids(el: Element): HTMLElement[] {
   return Array.from(el.children).filter((c): c is HTMLElement => c instanceof HTMLElement);
 }
 
 /**
- * The children of a group this layer may move.
+ * True when this element is one of several alike siblings — a card in a grid, a
+ * row in a price list, a slide in a strip.
  *
- * An element carrying an inline opacity or transform is held by something else
- * — a `<Reveal>` mid-entrance, a slider positioning its track — and adding a
- * second animation to the same property produces a fight the element loses.
- * This catches what is already visible at mount; the failsafe timer covers what
- * starts moving afterwards.
+ * Sameness is judged by tag and by shape, never by class: a card written as
+ * `<div><img><h3><p>` and one written with an extra wrapper are the same thing
+ * to a reader and different strings to a matcher. Shape is what separates a real
+ * set from two layout columns that merely happen to both be `<div>` — count them
+ * as a set and each column arrives as a slab, taking its contents with it.
  */
-export function animatableChildren(group: HTMLElement): HTMLElement[] {
-  return kids(group).filter(
-    (c) => !c.hasAttribute("data-motion-item") && c.style.opacity === "" && c.style.transform === "",
+function isSetMember(el: HTMLElement): boolean {
+  if (el.matches(LANDMARK)) return false;
+  const siblings = el.parentElement ? kids(el.parentElement) : [];
+  return (
+    siblings.length >= 2 &&
+    siblings.every((s) => s.tagName === el.tagName && s.children.length === el.children.length)
   );
 }
 
 /**
- * A container worth cascading: several children that are alike.
+ * True when something else already drives this element — a `<Reveal>` holding
+ * its opacity, a slider positioning its track. Adding a second animation to the
+ * same property is a fight the element loses.
  *
- * Sameness is judged by tag rather than by class, because a card written as
- * `<div><img><h3><p>` and one written with an extra wrapper are the same thing
- * to a reader and different strings to a matcher.
+ * A driven element is skipped but still walked into: on sites built before this
+ * layer, one `<Reveal>` wraps a whole section, and its contents are exactly what
+ * needs to cascade.
  */
-function isGroup(el: HTMLElement): boolean {
-  const children = kids(el);
-  if (children.length < 3) return false;
-  const first = children[0]!;
-  return children.every((c) => c.tagName === first.tagName);
+function isDriven(el: HTMLElement): boolean {
+  return el.style.opacity !== "" || el.style.transform !== "";
 }
 
-/**
- * Walk a section and collect everything that should cascade: the section's own
- * children, plus any grid or list nested inside it.
- *
- * Nested groups win over their parent — only the deepest container's children
- * are numbered, so a gallery's cards cascade rather than the gallery arriving as
- * one slab. That is the whole point of the exercise.
- */
-function collectGroups(node: HTMLElement, out: Set<HTMLElement>, depth = 0): void {
-  if (depth > 4) return; // deeper than this is layout scaffolding, not content
+function walk(node: HTMLElement, out: MotionItem[], depth: number): void {
+  if (depth > 12) return; // a real page never nests content this deep
 
-  if (kids(node).length >= 2) out.add(node);
-
+  let index = 0;
   for (const child of kids(node)) {
-    if (isGroup(child)) {
-      out.add(child);
-      continue; // a group's children are cards, not further groups
+    if (child.matches(SKIP)) continue;
+
+    if (!isDriven(child) && (child.matches(CONTENT) || isSetMember(child))) {
+      out.push({ el: child, index });
+      index += 1;
+      continue; // a card arrives as a card, not as three pieces of itself
     }
-    collectGroups(child, out, depth + 1);
+
+    walk(child, out, depth + 1);
   }
 }
 
-/** What the group is, judged by its contents — never by its name. */
-function inferRole(el: HTMLElement): string {
+/**
+ * How a group of siblings should feel, judged by what it holds — never by its
+ * name. A component called `Gallery` routinely holds three bullet points, and
+ * one called `Advantages` a photo wall.
+ */
+export function inferRole(el: HTMLElement): string {
   if (el.querySelector("video")) return "hero";
   if (el.querySelectorAll("img, picture").length >= 3) return "gallery";
   if (/«|»|”|“|відгук|review|testimonial/i.test(el.textContent ?? "")) return "proof";
