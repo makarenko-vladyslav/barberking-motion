@@ -28,8 +28,11 @@
   --motion-stagger: 0.08s;
   /* Temperament. The curve carries the character — never the duration. */
   --motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
-  /* Ceiling on the cascade: past the eighth item the wait stops reading as rhythm. */
-  --motion-stagger-max: 8;
+  /* Hard ceiling on the wait itself, not on the position. Capping the index was
+     not enough: a wave of seven quotes at 0.14s apart left the last one sitting
+     still for 0.84s after it was already on screen, which reads as late rather
+     than as rhythm. Nothing visible waits longer than this. */
+  --motion-delay-max: 0.32s;
 }
 
 /*
@@ -47,9 +50,8 @@
 
 [data-motion-item="seen"] {
   animation: rp-reveal var(--motion-duration) var(--motion-ease) forwards;
-  /* Position within the group, capped: past the eighth item the wait stops
-     reading as rhythm and starts reading as a page that has not loaded. */
-  animation-delay: calc(var(--motion-stagger) * min(var(--motion-index, 0), var(--motion-stagger-max)));
+  /* Position within the wave, but never longer than the ceiling above. */
+  animation-delay: min(calc(var(--motion-stagger) * var(--motion-index, 0)), var(--motion-delay-max));
   will-change: opacity, transform;
 }
 

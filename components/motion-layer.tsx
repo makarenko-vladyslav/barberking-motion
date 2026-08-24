@@ -4,10 +4,13 @@ import { useEffect } from "react";
 
 /**
  * How far up the viewport an element must come before it is revealed, as a
- * fraction of viewport height. At 0.85 the movement plays where a reader is
- * actually looking; at the bottom edge it finishes while the element is still
- * a sliver at the base of the screen, and the reader only ever meets the
- * aftermath.
+ * fraction of viewport height.
+ *
+ * At 0.85 the element has come properly into the frame before it starts. Tried
+ * at 0.95 — firing the moment it peeks over the bottom edge — and the owner read
+ * it as too early. What felt late was never this line: it was the cascade delay,
+ * which used to come from position among siblings rather than from who arrives
+ * together. See revealWave.
  */
 const REVEAL_LINE = 0.85;
 
@@ -70,9 +73,8 @@ export function MotionLayer() {
     const items = findMotionItems(document, window.innerHeight);
     if (items.length === 0) return;
 
-    for (const { el, index } of items) {
+    for (const el of items) {
       el.dataset.motionItem = "";
-      el.style.setProperty("--motion-index", String(index));
       // Timing is set on the parent, where custom properties inherit down to
       // every sibling at once: a wall of photographs cascades faster than a
       // column of quotes, and a hero takes its time.
@@ -80,18 +82,30 @@ export function MotionLayer() {
       if (parent && !parent.dataset.motionRole) parent.dataset.motionRole = inferRole(parent);
     }
 
-    const pending = new Set(items.map(({ el }) => el));
-    const reveal = (el: HTMLElement) => {
-      el.dataset.motionItem = "seen";
-      pending.delete(el);
-      io.unobserve(el); // once — re-firing on scroll-back is nausea
+    const pending = new Set(items);
+
+    /**
+     * Reveal a group of elements that arrived together, cascading top to bottom.
+     *
+     * The delay comes from position within THIS wave, never from position among
+     * siblings. In a tall price list each row crosses the line on its own, and a
+     * static index made the eighth row sit still for half a second after the eye
+     * had already reached it — which reads as late, not as rhythm.
+     */
+    const revealWave = (wave: HTMLElement[]) => {
+      wave
+        .sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)
+        .forEach((el, i) => {
+          el.style.setProperty("--motion-index", String(i));
+          el.dataset.motionItem = "seen";
+          pending.delete(el);
+          io.unobserve(el); // once — re-firing on scroll-back is nausea
+        });
     };
 
     const io = new IntersectionObserver(
       (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) reveal(entry.target as HTMLElement);
-        }
+        revealWave(entries.filter((e) => e.isIntersecting).map((e) => e.target as HTMLElement));
       },
       // The bottom edge is pulled up so an element is revealed once it is
       // properly in view, not while it is a sliver at the base of the screen.
@@ -110,10 +124,11 @@ export function MotionLayer() {
     const sweep = () => {
       queued = false;
       const line = revealLine(window.innerHeight, window.scrollY, document.documentElement.scrollHeight);
-      for (const el of [...pending]) {
+      const wave = [...pending].filter((el) => {
         const box = el.getBoundingClientRect();
-        if (box.top < line && box.bottom > 0) reveal(el);
-      }
+        return box.top < line && box.bottom > 0;
+      });
+      if (wave.length > 0) revealWave(wave);
     };
     const onScroll = () => {
       if (queued || pending.size === 0) return;
@@ -162,20 +177,14 @@ export function revealLine(viewportHeight: number, scrollY: number, documentHeig
   return atEnd ? viewportHeight : viewportHeight * REVEAL_LINE;
 }
 
-/** An element to reveal, and its position among the siblings it arrives with. */
-export interface MotionItem {
-  readonly el: HTMLElement;
-  readonly index: number;
-}
-
 /**
  * Everything on the page that should arrive rather than appear.
  *
  * Exported so the behaviour can be tested against real markup instead of being
  * asserted about in prose.
  */
-export function findMotionItems(root: Document | HTMLElement, viewportHeight = 900): MotionItem[] {
-  const items: MotionItem[] = [];
+export function findMotionItems(root: Document | HTMLElement, viewportHeight = 900): HTMLElement[] {
+  const items: HTMLElement[] = [];
   const doc = "body" in root ? root.body : root;
   if (doc) walk(doc, items, 0, viewportHeight);
   return items;
@@ -263,10 +272,9 @@ function isDriven(el: HTMLElement): boolean {
   return el.style.opacity !== "" || el.style.transform !== "";
 }
 
-function walk(node: HTMLElement, out: MotionItem[], depth: number, viewportHeight: number): void {
+function walk(node: HTMLElement, out: HTMLElement[], depth: number, viewportHeight: number): void {
   if (depth > 12) return; // a real page never nests content this deep
 
-  let index = 0;
   for (const child of kids(node)) {
     if (child.matches(SKIP)) continue;
 
@@ -274,8 +282,7 @@ function walk(node: HTMLElement, out: MotionItem[], depth: number, viewportHeigh
       child.matches(CONTENT) || isSetMember(child) || isVisualBox(child, viewportHeight);
 
     if (!isDriven(child) && isUnit) {
-      out.push({ el: child, index });
-      index += 1;
+      out.push(child);
       continue; // a card arrives as a card, not as three pieces of itself
     }
 

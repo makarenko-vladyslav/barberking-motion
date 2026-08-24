@@ -17,7 +17,7 @@ export default function Ticker() {
 
   return (
     <div className="relative w-full bg-[hsl(38_92%_50%)] text-[hsl(24_18%_7%)] py-3.5 overflow-hidden border-y border-[hsl(38_92%_42%)]">
-      <Marquee speed={40}>
+      <Marquee duration={40}>
         <div className="flex items-center font-display font-extrabold text-xl sm:text-2xl tracking-wider uppercase">
           {items.map((item, idx) => (
             <span key={idx} className="mx-8 flex items-center gap-8">
