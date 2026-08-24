@@ -1,0 +1,19 @@
+{
+  "basePrices": {
+    "cut": 600,
+    "beard": 450,
+    "combo": 950,
+    "clipper": 450,
+    "royalShave": 400,
+    "styling": 250,
+    "camo": 350,
+    "tattooSession": 1200
+  },
+  "addons": {
+    "blackMask": 250,
+    "waxing": 150,
+    "fatherSon": 900
+  },
+  "currency": "грн",
+  "estimationLogic": "interactive"
+}
