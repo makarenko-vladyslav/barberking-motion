@@ -6,7 +6,7 @@ import { useLocale } from "@/lib/i18n";
 export default function Header() {
   const { locale, setLocale, t } = useLocale();
   const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -17,75 +17,86 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
-    if (menuOpen) {
+    if (mobileMenuOpen) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
     }
-  }, [menuOpen]);
+  }, [mobileMenuOpen]);
 
   const navLinks = [
-    { href: "#services", label: t("nav.services") as string },
-    { href: "#calculator", label: t("nav.calculator") as string },
-    { href: "#advantages", label: t("nav.advantages") as string },
-    { href: "#tattoo", label: t("nav.tattoo") as string },
-    { href: "#team", label: t("nav.team") as string },
-    { href: "#reviews", label: t("nav.reviews") as string },
-    { href: "#contact", label: t("nav.contact") as string },
+    { href: "#services", label: String(t("nav.services")) },
+    { href: "#calculator", label: String(t("nav.calculator")) },
+    { href: "#locations", label: String(t("nav.locations")) },
+    { href: "#tattoo", label: String(t("nav.tattoo")) },
+    { href: "#team", label: String(t("nav.team")) },
+    { href: "#gallery", label: String(t("nav.gallery")) },
+    { href: "#reviews", label: String(t("nav.reviews")) },
+    { href: "#faq", label: String(t("nav.faq")) },
   ];
 
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-[hsl(220,20%,9%)]/95 backdrop-blur-md py-3 border-b border-[hsl(220,15%,18%)] shadow-xl"
-          : "bg-gradient-to-b from-black/80 via-black/40 to-transparent py-5"
+          ? "bg-[hsl(24_18%_7%/0.95)] backdrop-blur-md border-b border-white/10 py-3 shadow-xl"
+          : "bg-gradient-to-b from-black/85 via-black/40 to-transparent py-5"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-        {/* Wordmark Logo */}
-        <a href="#" className="group flex flex-col focus:outline-none">
-          <span className="font-display font-extrabold text-2xl tracking-wider text-white group-hover:text-[hsl(38,90%,50%)] transition-colors">
+        {/* Brand Wordmark Logo */}
+        <a href="#" className="group flex flex-col focus:outline-none py-1">
+          <span className="font-display text-2xl sm:text-3xl font-extrabold tracking-wider text-white group-hover:text-[hsl(38_92%_50%)] transition-colors">
             BARBERKING
           </span>
-          <span className="text-[10px] tracking-[0.25em] text-[hsl(38,90%,50%)] font-semibold uppercase -mt-1">
-            ЛЬВІВ · 31А
+          <span className="text-[9px] uppercase tracking-[0.25em] text-[hsl(38_92%_50%)] font-semibold -mt-1">
+            {String(t("nav.brandSub"))}
           </span>
         </a>
 
-        {/* Desktop Nav */}
-        <nav className="hidden lg:flex items-center gap-7">
+        {/* Desktop Nav Links */}
+        <nav className="hidden lg:flex items-center space-x-6 text-xs uppercase tracking-wider font-semibold">
           {navLinks.map((link) => (
             <a
               key={link.href}
               href={link.href}
-              className="text-xs uppercase tracking-widest text-zinc-300 hover:text-[hsl(38,90%,50%)] font-medium transition-colors"
+              className="text-white/80 hover:text-[hsl(38_92%_50%)] transition-colors py-2 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[2px] after:bg-[hsl(38_92%_50%)] hover:after:w-full after:transition-all"
             >
               {link.label}
             </a>
           ))}
         </nav>
 
-        {/* Right CTA + Language */}
-        <div className="hidden sm:flex items-center gap-4">
+        {/* Actions Right */}
+        <div className="hidden sm:flex items-center space-x-4">
+          <a
+            href="tel:0951079215"
+            className="text-xs font-bold tracking-wider text-white hover:text-[hsl(38_92%_50%)] transition-colors flex items-center gap-2 py-2"
+          >
+            <span className="w-2 h-2 rounded-full bg-[hsl(38_92%_50%)] animate-pulse" />
+            095 107 92 15
+          </a>
+
           {/* Language Switcher */}
-          <div className="flex items-center bg-zinc-900/80 border border-zinc-800 rounded-full p-1 text-xs font-semibold">
+          <div className="flex items-center rounded-full bg-white/10 p-0.5 border border-white/10 text-[10px] font-bold">
             <button
+              type="button"
               onClick={() => setLocale("uk")}
               className={`px-2.5 py-1 rounded-full transition-all ${
                 locale === "uk"
-                  ? "bg-[hsl(38,90%,50%)] text-[hsl(220,20%,9%)] font-bold shadow-sm"
-                  : "text-zinc-400 hover:text-white"
+                  ? "bg-[hsl(38_92%_50%)] text-[hsl(24_18%_7%)]"
+                  : "text-white/70 hover:text-white"
               }`}
             >
               UA
             </button>
             <button
+              type="button"
               onClick={() => setLocale("en")}
               className={`px-2.5 py-1 rounded-full transition-all ${
                 locale === "en"
-                  ? "bg-[hsl(38,90%,50%)] text-[hsl(220,20%,9%)] font-bold shadow-sm"
-                  : "text-zinc-400 hover:text-white"
+                  ? "bg-[hsl(38_92%_50%)] text-[hsl(24_18%_7%)]"
+                  : "text-white/70 hover:text-white"
               }`}
             >
               EN
@@ -93,92 +104,88 @@ export default function Header() {
           </div>
 
           <a
-            href="tel:+380662636339"
-            className="text-xs tracking-wider text-zinc-200 hover:text-[hsl(38,90%,50%)] font-bold transition-colors whitespace-nowrap"
+            href="#booking"
+            className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider rounded bg-[hsl(38_92%_50%)] text-[hsl(24_18%_7%)] hover:bg-[hsl(38_92%_42%)] transition-all shadow-lg shadow-[hsl(38_92%_50%/0.2)]"
           >
-            +380 66 263 6339
-          </a>
-
-          <a
-            href="#contact"
-            className="bg-[hsl(38,90%,50%)] hover:bg-[hsl(35,95%,42%)] text-[hsl(220,20%,9%)] font-extrabold text-xs tracking-wider uppercase px-4 py-2.5 rounded-lg transition-transform active:scale-95 shadow-lg shadow-[hsl(38,90%,50%)]/15"
-          >
-            {t("cta.book") as string}
+            {String(t("nav.book"))}
           </a>
         </div>
 
-        {/* Mobile Hamburger Button */}
-        <div className="flex items-center gap-3 lg:hidden">
-          <div className="flex items-center bg-zinc-900/90 border border-zinc-800 rounded-full p-0.5 text-xs">
-            <button
-              onClick={() => setLocale("uk")}
-              className={`px-2 py-0.5 rounded-full ${
-                locale === "uk" ? "bg-[hsl(38,90%,50%)] text-black font-bold" : "text-zinc-400"
-              }`}
-            >
-              UA
-            </button>
-            <button
-              onClick={() => setLocale("en")}
-              className={`px-2 py-0.5 rounded-full ${
-                locale === "en" ? "bg-[hsl(38,90%,50%)] text-black font-bold" : "text-zinc-400"
-              }`}
-            >
-              EN
-            </button>
-          </div>
-
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Toggle menu"
-            className="p-2 text-zinc-200 hover:text-[hsl(38,90%,50%)] focus:outline-none"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {menuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
-          </button>
-        </div>
+        {/* Mobile Hamburger Toggle */}
+        <button
+          type="button"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="lg:hidden px-3 py-2.5 rounded bg-white/10 text-xs font-bold uppercase tracking-wider text-white hover:text-[hsl(38_92%_50%)] focus:outline-none border border-white/15"
+          aria-label={String(t("nav.toggleMenu"))}
+        >
+          {mobileMenuOpen ? "ЗАКРИТИ" : "МЕНЮ"}
+        </button>
       </div>
 
       {/* Fullscreen Mobile Menu Overlay */}
-      {menuOpen && (
-        <div className="fixed inset-0 top-[60px] bg-[hsl(220,20%,9%)]/98 backdrop-blur-xl z-40 flex flex-col justify-between p-6 overflow-y-auto lg:hidden">
-          <div className="space-y-4 pt-4">
-            <div className="text-[10px] uppercase tracking-[0.3em] text-[hsl(38,90%,50%)] font-extrabold mb-4">
-              НАВІГАЦІЯ
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-50 bg-[hsl(24_18%_7%)] flex flex-col justify-between p-6 sm:p-10 lg:hidden">
+          <div className="flex items-center justify-between border-b border-white/10 pb-4">
+            <div className="flex flex-col">
+              <span className="font-display text-3xl font-extrabold text-white">BARBERKING</span>
+              <span className="text-[10px] tracking-widest text-[hsl(38_92%_50%)]">{String(t("nav.brandSub"))}</span>
             </div>
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-3 py-2.5 rounded bg-white/10 text-xs font-bold text-white hover:text-[hsl(38_92%_50%)] uppercase border border-white/15"
+            >
+              ЗАКРИТИ
+            </button>
+          </div>
+
+          <nav className="flex flex-col space-y-4 my-auto">
             {navLinks.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
-                onClick={() => setMenuOpen(false)}
-                className="block text-xl font-display font-bold uppercase tracking-wider text-zinc-100 hover:text-[hsl(38,90%,50%)] py-2 border-b border-zinc-800/60"
+                onClick={() => setMobileMenuOpen(false)}
+                className="font-display text-2xl uppercase tracking-wider text-white hover:text-[hsl(38_92%_50%)] transition-colors py-1"
               >
                 {link.label}
               </a>
             ))}
-          </div>
+          </nav>
 
-          <div className="mt-8 pt-6 border-t border-zinc-800 space-y-4">
+          <div className="flex flex-col space-y-4 border-t border-white/10 pt-6">
             <a
-              href="tel:+380662636339"
-              className="block text-center text-lg font-bold text-[hsl(38,90%,50%)]"
+              href="tel:0951079215"
+              className="text-lg font-bold text-[hsl(38_92%_50%)] text-center py-3 border border-[hsl(38_92%_50%/0.3)] rounded"
             >
-              +380 66 263 6339
+              095 107 92 15
             </a>
-            <p className="text-xs text-center text-zinc-400">
-              Львів, вул. Шевченка, 31А · Безкоштовний паркінг
-            </p>
+
+            <div className="flex items-center justify-between py-1">
+              <span className="text-xs text-white/60">{String(t("nav.languageLabel"))}</span>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => { setLocale("uk"); setMobileMenuOpen(false); }}
+                  className={`px-3 py-2 rounded text-xs font-bold ${locale === 'uk' ? 'bg-[hsl(38_92%_50%)] text-black' : 'bg-white/10 text-white'}`}
+                >
+                  УКР
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setLocale("en"); setMobileMenuOpen(false); }}
+                  className={`px-3 py-2 rounded text-xs font-bold ${locale === 'en' ? 'bg-[hsl(38_92%_50%)] text-black' : 'bg-white/10 text-white'}`}
+                >
+                  ENG
+                </button>
+              </div>
+            </div>
+
             <a
-              href="#contact"
-              onClick={() => setMenuOpen(false)}
-              className="block w-full text-center bg-[hsl(38,90%,50%)] text-[hsl(220,20%,9%)] font-extrabold py-3.5 rounded-xl uppercase text-sm tracking-wider shadow-lg"
+              href="#booking"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full text-center py-3.5 text-sm font-bold uppercase tracking-wider rounded bg-[hsl(38_92%_50%)] text-[hsl(24_18%_7%)] shadow-lg"
             >
-              {t("cta.book") as string}
+              {String(t("nav.book"))}
             </a>
           </div>
         </div>

@@ -67,7 +67,7 @@ const LANDMARK = "body,main,section,header,footer,aside,nav";
  */
 export function MotionLayer() {
   useEffect(() => {
-    const items = findMotionItems(document);
+    const items = findMotionItems(document, window.innerHeight);
     if (items.length === 0) return;
 
     for (const { el, index } of items) {
@@ -174,10 +174,10 @@ export interface MotionItem {
  * Exported so the behaviour can be tested against real markup instead of being
  * asserted about in prose.
  */
-export function findMotionItems(root: Document | HTMLElement): MotionItem[] {
+export function findMotionItems(root: Document | HTMLElement, viewportHeight = 900): MotionItem[] {
   const items: MotionItem[] = [];
   const doc = "body" in root ? root.body : root;
-  if (doc) walk(doc, items, 0);
+  if (doc) walk(doc, items, 0, viewportHeight);
   return items;
 }
 
@@ -187,22 +187,67 @@ function kids(el: Element): HTMLElement[] {
 }
 
 /**
+ * True when the element reads as an object rather than as layout: it has a
+ * background, a border, a shadow or a rounded corner.
+ *
+ * This is what the eye uses, so the code should use it too. Without it the rule
+ * fell through a price card whose siblings differed by one badge, and animated
+ * its heading, its price and its button as three separate pieces — measured at
+ * 147 of 201 elements moving inside boxes that stood still, which is what the
+ * owner saw as twitchy.
+ *
+ * Bounded by height: past roughly three quarters of the screen a box stops being
+ * an object arriving and becomes a region, and a region arriving as one slab is
+ * the failure this whole layer exists to prevent.
+ */
+export function isVisualBox(el: HTMLElement, viewportHeight: number): boolean {
+  // A landmark is a region however it is painted. The barbershop's footer has
+  // its own background and fits inside the viewport, so it qualified on looks
+  // and arrived as one slab, taking twelve links with it.
+  if (el.matches(LANDMARK)) return false;
+
+  // Falls back to the inline style when there is no view to compute against —
+  // a document parsed outside a window has no `defaultView`, and a rule that
+  // silently answers "no" there cannot be tested at all.
+  const cs = el.ownerDocument.defaultView?.getComputedStyle(el) ?? el.style;
+
+  const opaque = cs.backgroundColor !== "" && cs.backgroundColor !== "transparent" && !cs.backgroundColor.startsWith("rgba(0, 0, 0, 0");
+  const rounded = Number.parseFloat(cs.borderRadius) >= 8;
+  const bordered = Number.parseFloat(cs.borderTopWidth) > 0 || Number.parseFloat(cs.borderLeftWidth) > 0;
+  const shadowed = cs.boxShadow !== "" && cs.boxShadow !== "none";
+  if (!opaque && !rounded && !bordered && !shadowed) return false;
+
+  // Only an upper bound. A height of zero means the document has no layout yet
+  // (or the element is hidden), and neither is a reason to call it a region.
+  return el.getBoundingClientRect().height <= viewportHeight * 0.75;
+}
+
+/**
  * True when this element is one of several alike siblings — a card in a grid, a
  * row in a price list, a slide in a strip.
  *
- * Sameness is judged by tag and by shape, never by class: a card written as
- * `<div><img><h3><p>` and one written with an extra wrapper are the same thing
- * to a reader and different strings to a matcher. Shape is what separates a real
- * set from two layout columns that merely happen to both be `<div>` — count them
- * as a set and each column arrives as a slab, taking its contents with it.
+ * Sameness is judged by class, because that is what the generator's own code
+ * produces: every repeating unit on these sites comes from a `.map()`, and one
+ * JSX expression renders one identical `className` for every item. Measured
+ * across four generated sites — 11 to 15 mapped blocks each, cards, tabs, nav
+ * links, gallery tiles — it is the single structure they all share.
+ *
+ * It also draws the line the shape test could not: two layout columns are both
+ * `<div>` but carry different classes, and treating them as a set makes each
+ * column arrive as a slab with its contents frozen inside.
  */
 function isSetMember(el: HTMLElement): boolean {
   if (el.matches(LANDMARK)) return false;
   const siblings = el.parentElement ? kids(el.parentElement) : [];
-  return (
-    siblings.length >= 2 &&
-    siblings.every((s) => s.tagName === el.tagName && s.children.length === el.children.length)
-  );
+  if (siblings.length < 2) return false;
+
+  const signature = el.className.toString();
+  if (signature === "") {
+    // No class to compare: fall back to shape, which still catches a plain
+    // `<li>` list or a row of bare `<div>`s.
+    return siblings.every((s) => s.tagName === el.tagName && s.children.length === el.children.length);
+  }
+  return siblings.every((s) => s.tagName === el.tagName && s.className.toString() === signature);
 }
 
 /**
@@ -218,20 +263,23 @@ function isDriven(el: HTMLElement): boolean {
   return el.style.opacity !== "" || el.style.transform !== "";
 }
 
-function walk(node: HTMLElement, out: MotionItem[], depth: number): void {
+function walk(node: HTMLElement, out: MotionItem[], depth: number, viewportHeight: number): void {
   if (depth > 12) return; // a real page never nests content this deep
 
   let index = 0;
   for (const child of kids(node)) {
     if (child.matches(SKIP)) continue;
 
-    if (!isDriven(child) && (child.matches(CONTENT) || isSetMember(child))) {
+    const isUnit =
+      child.matches(CONTENT) || isSetMember(child) || isVisualBox(child, viewportHeight);
+
+    if (!isDriven(child) && isUnit) {
       out.push({ el: child, index });
       index += 1;
       continue; // a card arrives as a card, not as three pieces of itself
     }
 
-    walk(child, out, depth + 1);
+    walk(child, out, depth + 1, viewportHeight);
   }
 }
 

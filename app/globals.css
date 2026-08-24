@@ -1,19 +1,17 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: hsl(220 20% 9%);
-  --color-primary-light: hsl(220 18% 14%);
-  --color-accent: hsl(38 90% 50%);
-  --color-accent-hover: hsl(35 95% 42%);
-  --color-bg-dark: hsl(220 20% 9%);
-  --color-bg-card: hsl(220 18% 13%);
-  --color-bg-light: hsl(38 25% 96%);
-  --color-text-main: hsl(220 10% 94%);
-  --color-text-muted: hsl(220 10% 68%);
-  --color-border-dark: hsl(220 15% 20%);
-  
-  --font-display: 'Jost', sans-serif;
-  --font-body: 'Rubik', sans-serif;
+  --color-primary: hsl(24 15% 10%);
+  --color-accent: hsl(38 92% 50%);
+  --color-accent-hover: hsl(38 92% 42%);
+  --color-bg-dark: hsl(24 18% 7%);
+  --color-bg-light: hsl(36 20% 96%);
+  --color-text-main: hsl(24 15% 18%);
+  --color-text-muted: hsl(24 10% 45%);
+  --color-surface-dark: hsl(24 15% 12%);
+  --color-surface-card: hsl(0 0% 100%);
+  --font-display: 'Alumni Sans', sans-serif;
+  --font-body: 'Libre Franklin', sans-serif;
 }
 
 @layer base {
@@ -21,21 +19,17 @@
     font-size: 16px;
     scroll-behavior: smooth;
   }
-  @media (min-width: 768px) {
-    html { font-size: 17px; }
-  }
-  @media (min-width: 1280px) {
-    html { font-size: 18px; }
-  }
-  @media (min-width: 1600px) {
-    html { font-size: 19px; }
-  }
+  @media (min-width: 768px) { html { font-size: 17px; } }
+  @media (min-width: 1280px) { html { font-size: 18px; } }
+  @media (min-width: 1600px) { html { font-size: 19px; } }
 
   body {
     font-family: var(--font-body);
     background-color: var(--color-bg-dark);
-    color: var(--color-text-main);
+    color: hsl(0 0% 92%);
     overflow-x: hidden;
+    margin: 0;
+    padding: 0;
   }
 
   h1, h2, h3, h4, .font-display {
@@ -43,23 +37,17 @@
   }
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
+@keyframes spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
-::-webkit-scrollbar-track {
-  background: hsl(220 20% 8%);
-}
-::-webkit-scrollbar-thumb {
-  background: hsl(220 15% 22%);
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: hsl(38 90% 50%);
+
+.animate-spin-slow {
+  animation: spin-slow 22s linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *, ::before, ::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -68,9 +56,35 @@
 }
 
 :focus-visible {
-  outline: 2px solid hsl(38 90% 50%);
+  outline: 2px solid var(--color-accent);
   outline-offset: 3px;
 }
+
+
+html { font-size: 16px; }
+@media (min-width: 768px)  { html { font-size: 17px; } }
+@media (min-width: 1280px) { html { font-size: 18px; } }
+@media (min-width: 1600px) { html { font-size: 19px; } }
+@media (min-width: 1920px) { html { font-size: 20px; } }
+
+
+/* The root size, chosen per breakpoint.
+
+   Everything on these pages is laid out in rem, so this single value sets the
+   size of the whole site at each width. A viewport-scaled root breaks on
+   exactly the devices people hold: measured live, 17.3px at 390px, heading for
+   26.7px at 600px, while an 800px tablet got 12.5px.
+
+   The ladder is reading distance, not arithmetic. A phone is held at arm's
+   length and the platform is calibrated to 16px — iOS text-size settings
+   assume it, and 16px at 390px gives about 45 characters a line, the low end of
+   comfortable. Each step out adds distance and screen, so the type grows with
+   it, and stops at 20px where a line would otherwise run past 75 characters. */
+html { font-size: 16px; }
+@media (min-width: 768px)  { html { font-size: 17px; } }
+@media (min-width: 1280px) { html { font-size: 18px; } }
+@media (min-width: 1600px) { html { font-size: 19px; } }
+@media (min-width: 1920px) { html { font-size: 20px; } }
 
 /* iOS Safari zooms the whole page when a focused field is under 16px. */
 @media (max-width: 1024px) {

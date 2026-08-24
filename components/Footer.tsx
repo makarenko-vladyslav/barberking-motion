@@ -6,102 +6,95 @@ export default function Footer() {
   const { t } = useLocale();
 
   return (
-    <footer className="bg-[hsl(220,22%,7%)] text-zinc-400 pt-16 pb-12 border-t border-zinc-800 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 pb-12 border-b border-zinc-800/80">
-          {/* Col 1: Wordmark & Tagline */}
-          <div className="md:col-span-1">
-            <span className="font-display font-extrabold text-3xl tracking-wider text-white block">
+    <footer className="bg-[hsl(24_22%_4%)] text-white pt-20 pb-8 border-t border-white/10 relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 mb-16 relative z-10">
+          {/* Brand Col */}
+          <div className="lg:col-span-2">
+            <a href="#" className="font-display text-4xl font-extrabold tracking-wider text-white mb-2 block">
               BARBERKING
+            </a>
+            <span className="text-[10px] uppercase tracking-[0.25em] text-[hsl(38_92%_50%)] font-bold block mb-4">
+              МЕРЕЖА ЧОЛОВІЧИХ БАРБЕРШОПІВ У КИЄВІ
             </span>
-            <div className="text-[10px] tracking-[0.25em] text-[hsl(38,90%,50%)] font-semibold uppercase mt-0.5">
-              ЛЬВІВ · ВУЛ. ШЕВЧЕНКА 31А
-            </div>
-            <p className="mt-4 text-xs text-zinc-500 leading-relaxed">
-              {t("footer.tagline") as string}
+            <p className="text-xs text-white/60 leading-relaxed mb-6 max-w-sm">
+              {String(t("footer.tagline"))}
             </p>
-          </div>
-
-          {/* Col 2: Navigation */}
-          <div>
-            <div className="text-xs uppercase tracking-widest font-extrabold text-white mb-4">
-              Навігація
-            </div>
-            <ul className="space-y-2 text-xs">
-              <li><a href="#services" className="hover:text-[hsl(38,90%,50%)] transition-colors">Послуги та ціни</a></li>
-              <li><a href="#calculator" className="hover:text-[hsl(38,90%,50%)] transition-colors">Калькулятор візиту</a></li>
-              <li><a href="#tattoo" className="hover:text-[hsl(38,90%,50%)] transition-colors">Tattoo Room</a></li>
-              <li><a href="#team" className="hover:text-[hsl(38,90%,50%)] transition-colors">Наші барбери</a></li>
-            </ul>
-          </div>
-
-          {/* Col 3: Contacts */}
-          <div>
-            <div className="text-xs uppercase tracking-widest font-extrabold text-white mb-4">
-              Контакти
-            </div>
-            <ul className="space-y-2 text-xs">
-              <li className="text-zinc-300 font-semibold">м. Львів, вул. Шевченка 31А</li>
-              <li><a href="tel:+380662636339" className="text-[hsl(38,90%,50%)] font-bold">+380 66 263 6339</a></li>
-              <li>barberking.lv@gmail.com</li>
-              <li className="text-zinc-500">Пн – Нд: 10:00 – 21:00</li>
-            </ul>
-          </div>
-
-          {/* Col 4: Perks & Social */}
-          <div>
-            <div className="text-xs uppercase tracking-widest font-extrabold text-white mb-4">
-              Соціальні мережі
-            </div>
-            <div className="flex gap-3 text-xs">
+            <div className="flex gap-3">
               <a
-                href="https://www.instagram.com/barberking_kh/"
+                href="https://www.instagram.com/barberking_kv/"
                 target="_blank"
                 rel="noreferrer"
-                className="px-3.5 py-2 bg-zinc-900 border border-zinc-800 rounded-lg hover:border-[hsl(38,90%,50%)] text-zinc-200 transition-colors"
+                className="px-3.5 py-2 rounded bg-white/10 hover:bg-[hsl(38_92%_50%)] hover:text-black text-[11px] font-extrabold uppercase tracking-wider transition-all"
               >
-                Instagram
+                INSTAGRAM
               </a>
               <a
                 href="https://www.facebook.com/BarberKingkh/"
                 target="_blank"
                 rel="noreferrer"
-                className="px-3.5 py-2 bg-zinc-900 border border-zinc-800 rounded-lg hover:border-[hsl(38,90%,50%)] text-zinc-200 transition-colors"
+                className="px-3.5 py-2 rounded bg-white/10 hover:bg-[hsl(38_92%_50%)] hover:text-black text-[11px] font-extrabold uppercase tracking-wider transition-all"
               >
-                Facebook
+                FACEBOOK
               </a>
             </div>
-            <div className="mt-4 text-[11px] text-zinc-500 font-mono">
-              {t("footer.creditVoice") as string}
-            </div>
+          </div>
+
+          {/* Nav Col */}
+          <div>
+            <h4 className="font-display text-lg font-bold text-[hsl(38_92%_50%)] uppercase mb-4">
+              {String(t("footer.navigation"))}
+            </h4>
+            <ul className="space-y-2 text-xs text-white/70">
+              <li><a href="#services" className="hover:text-white transition-colors py-1 block">{String(t("footer.link1"))}</a></li>
+              <li><a href="#calculator" className="hover:text-white transition-colors py-1 block">{String(t("footer.link2"))}</a></li>
+              <li><a href="#locations" className="hover:text-white transition-colors py-1 block">{String(t("footer.link3"))}</a></li>
+              <li><a href="#tattoo" className="hover:text-white transition-colors py-1 block">{String(t("footer.link4"))}</a></li>
+              <li><a href="#team" className="hover:text-white transition-colors py-1 block">{String(t("footer.link5"))}</a></li>
+            </ul>
+          </div>
+
+          {/* Branches Col */}
+          <div>
+            <h4 className="font-display text-lg font-bold text-[hsl(38_92%_50%)] uppercase mb-4">
+              Філії у Києві
+            </h4>
+            <ul className="space-y-2 text-xs text-white/70">
+              <li>{String(t("footer.b1"))}</li>
+              <li>{String(t("footer.b2"))}</li>
+              <li>{String(t("footer.b3"))}</li>
+              <li>{String(t("footer.b4"))}</li>
+            </ul>
+          </div>
+
+          {/* Contact Col */}
+          <div>
+            <h4 className="font-display text-lg font-bold text-[hsl(38_92%_50%)] uppercase mb-4">
+              {String(t("footer.contacts"))}
+            </h4>
+            <ul className="space-y-2 text-xs text-white/70">
+              <li><a href="tel:0951079215" className="font-bold text-white hover:text-[hsl(38_92%_50%)] py-1 block">095 107 92 15</a></li>
+              <li>{String(t("footer.email"))}</li>
+              <li className="pt-2 text-[10px] text-white/50">{String(t("footer.workingHours"))}</li>
+            </ul>
           </div>
         </div>
 
-        {/* Giant Bleeding Wordmark at Footer Base */}
-        <div 
-          aria-hidden="true" 
-          className="my-8 overflow-hidden pointer-events-none select-none text-center"
+        {/* Giant Watermark Display Text Bleeding Off Bottom Edge */}
+        <div
+          className="w-full font-display font-black text-[15vw] sm:text-[16vw] text-white/[0.04] leading-none select-none tracking-tighter uppercase text-center block overflow-hidden -mb-6"
+          aria-hidden="true"
         >
-          <span className="font-display font-black text-[15vw] leading-none text-zinc-900/60 tracking-tighter block uppercase">
-            BARBERKING
-          </span>
+          BARBERKING
         </div>
 
-        {/* Bottom Legal & Studio Credit Row */}
-        <div className="pt-6 border-t border-zinc-800/80 flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-500 gap-4">
+        {/* Legal Row */}
+        <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between text-[11px] text-white/50 gap-4">
           <div>
-            © 2026 BARBERKING LVIV. {t("footer.rights") as string}
+            © 2026 BARBERKING. {String(t("footer.rights"))}
           </div>
-
           <div>
-            <a
-              href="https://makarich.framer.website"
-              target="_blank"
-              rel="noreferrer"
-              className="hover:text-[hsl(38,90%,50%)] transition-colors underline underline-offset-4"
-            >
-              {t("footer.developer") as string}
-            </a>
+            {String(t("footer.developer"))}
           </div>
         </div>
       </div>

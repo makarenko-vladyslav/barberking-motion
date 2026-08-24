@@ -1,96 +1,137 @@
 "use client";
 
 import { useLocale } from "@/lib/i18n";
-import { Reveal } from "@/components/motion";
+
+interface MasterItem {
+  name: string;
+  role: string;
+  location: string;
+  photo?: string;
+  initials: string;
+}
 
 export default function TattooRoom() {
   const { t } = useLocale();
-  const features = (t("tattoo.features") as string[]) || [];
 
   return (
-    <section id="tattoo" className="py-24 bg-[hsl(220,18%,13%)] border-y border-zinc-800 relative scroll-mt-16 overflow-hidden">
+    <section id="tattoo" className="py-20 bg-[hsl(24_15%_10%)] text-white relative border-b border-white/10 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          {/* Left: 2-Photo Overlapped Cluster Layout */}
-          <div className="lg:col-span-6 relative">
-            <Reveal duration={0.72} ease={[0.33, 1, 0.68, 1]} stagger={0.06}>
-              <div className="relative z-10 rounded-3xl overflow-hidden shadow-2xl border border-zinc-700 max-w-md">
-                <img
-                  src="https://images.pexels.com/photos/37764947/pexels-photo-37764947.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
-                  alt="Tattoo Room process"
-                  loading="lazy"
-                  className="w-full h-[360px] sm:h-[420px] object-cover filter brightness-90 hover:scale-105 transition-transform duration-700"
-                />
-                <div className="absolute top-4 left-4 bg-[hsl(38,90%,50%)] text-[hsl(220,20%,9%)] font-extrabold text-[11px] tracking-widest uppercase px-4 py-1.5 rounded-full shadow-lg">
-                  TATTOO ROOM
-                </div>
-              </div>
-            </Reveal>
+        {/* Section Header */}
+        <div className="mb-12">
+          <span className="text-xs font-bold uppercase tracking-[0.25em] text-[hsl(38_92%_50%)] mb-2 block">
+            {String(t("tattoo.kicker"))}
+          </span>
+          <h2 className="font-display text-4xl sm:text-6xl font-extrabold uppercase tracking-tight text-white mb-4 leading-none">
+            {String(t("tattoo.title"))}
+          </h2>
+          <p className="text-white/80 text-base max-w-3xl leading-relaxed">
+            {String(t("tattoo.subtitle"))}
+          </p>
+        </div>
 
-            {/* Overlapped Second Photo */}
-            <Reveal delay={0.2} duration={0.72} ease={[0.33, 1, 0.68, 1]} stagger={0.06}>
-              <div className="hidden sm:block absolute -bottom-8 -right-4 lg:right-0 z-20 w-64 rounded-2xl overflow-hidden border-2 border-[hsl(38,90%,50%)] shadow-2xl bg-zinc-900">
-                <img
-                  src="https://images.pexels.com/photos/18301169/pexels-photo-18301169.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
-                  alt="Tattoo Equipment Sterility"
-                  loading="lazy"
-                  className="w-full h-48 object-cover"
-                />
-                <div className="p-3 bg-zinc-950 text-[10px] font-mono text-zinc-300">
-                  Медична стерильність картриджів Cheyenne
-                </div>
-              </div>
-            </Reveal>
+        {/* Oversized Statement Banner */}
+        <div className="mb-12 p-6 sm:p-8 rounded-xl bg-[hsl(38_92%_50%/0.08)] border border-[hsl(38_92%_50%/0.3)]">
+          <p className="font-display text-2xl sm:text-3xl font-extrabold uppercase tracking-wider text-[hsl(38_92%_50%)] text-center">
+            "{String(t("tattoo.quote"))}"
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-12">
+          {/* Text Info Column */}
+          <div className="lg:col-span-7 space-y-6">
+            <div className="p-5 rounded-lg bg-[hsl(24_18%_7%)] border border-white/10">
+              <span className="text-xs font-bold uppercase tracking-widest text-[hsl(38_92%_50%)] block mb-1">
+                ФАХОВИЙ СТАНДАРТ 01
+              </span>
+              <h3 className="font-display text-2xl font-bold uppercase text-white mb-2">
+                {String(t("tattoo.feature1Title"))}
+              </h3>
+              <p className="text-xs text-white/70 leading-relaxed">
+                {String(t("tattoo.feature1Desc"))}
+              </p>
+            </div>
+
+            <div className="p-5 rounded-lg bg-[hsl(24_18%_7%)] border border-white/10">
+              <span className="text-xs font-bold uppercase tracking-widest text-[hsl(38_92%_50%)] block mb-1">
+                ФАХОВИЙ СТАНДАРТ 02
+              </span>
+              <h3 className="font-display text-2xl font-bold uppercase text-white mb-2">
+                {String(t("tattoo.feature2Title"))}
+              </h3>
+              <p className="text-xs text-white/70 leading-relaxed">
+                {String(t("tattoo.feature2Desc"))}
+              </p>
+            </div>
+
+            <div className="p-5 rounded-lg bg-[hsl(24_18%_7%)] border border-white/10">
+              <span className="text-xs font-bold uppercase tracking-widest text-[hsl(38_92%_50%)] block mb-1">
+                ФАХОВИЙ СТАНДАРТ 03
+              </span>
+              <h3 className="font-display text-2xl font-bold uppercase text-white mb-2">
+                {String(t("tattoo.feature3Title"))}
+              </h3>
+              <p className="text-xs text-white/70 leading-relaxed">
+                {String(t("tattoo.feature3Desc"))}
+              </p>
+            </div>
+
+            <a
+              href="#booking"
+              className="inline-block px-8 py-4 rounded text-xs font-extrabold uppercase tracking-widest bg-[hsl(38_92%_50%)] text-[hsl(24_18%_7%)] hover:bg-[hsl(38_92%_42%)] transition-all shadow-xl"
+            >
+              Консультація та замовлення ескізу →
+            </a>
           </div>
 
-          {/* Right: Copy & Features */}
-          <div className="lg:col-span-6">
-            <Reveal delay={0.1} duration={0.72} ease={[0.33, 1, 0.68, 1]} stagger={0.06}>
-              <span className="text-xs uppercase tracking-[0.3em] font-extrabold text-[hsl(38,90%,50%)] block mb-2">
-                {t("tattoo.kicker") as string}
-              </span>
-              <h2 className="text-3xl sm:text-5xl font-display font-extrabold uppercase text-white tracking-tight">
-                {t("tattoo.title") as string}
-              </h2>
-              <p className="mt-3 text-zinc-200 font-semibold text-base sm:text-lg">
-                {t("tattoo.subtitle") as string}
-              </p>
-              <p className="mt-4 text-zinc-400 text-sm leading-relaxed">
-                {t("tattoo.desc") as string}
-              </p>
-
-              {/* Quote caption */}
-              <div className="mt-6 p-4 rounded-xl bg-zinc-900/80 border-l-2 border-[hsl(38,90%,50%)]">
-                <p className="text-xs text-zinc-300 italic">"{t("tattoo.quote") as string}"</p>
-                <span className="text-[10px] uppercase font-bold text-[hsl(38,90%,50%)] mt-1 block">
-                  {t("tattoo.artist") as string}
+          {/* Visual Showcase 2-Photo Cluster */}
+          <div className="lg:col-span-5 relative">
+            <div className="relative rounded-xl overflow-hidden border border-[hsl(38_92%_50%/0.3)] shadow-2xl bg-black mb-6">
+              <img
+                src="https://kyiv.bking.com.ua/wp-content/uploads/2024/12/certificate-768x549.png"
+                alt={String(t("tattoo.certAlt"))}
+                className="w-full h-auto object-cover opacity-90"
+              />
+              <div className="p-4 bg-black/90 border-t border-white/10">
+                <span className="text-[10px] uppercase font-extrabold tracking-widest text-[hsl(38_92%_50%)] block mb-0.5">
+                  RESIDENT ARTISTS IN-HOUSE
                 </span>
+                <p className="text-xs font-bold text-white">
+                  Андрій та Анастасія — резиденти Tattoo Room (вул. Павлівська 18)
+                </p>
               </div>
+            </div>
 
-              <div className="mt-6 space-y-2.5">
-                {features.map((feat, idx) => (
-                  <div key={idx} className="flex items-center gap-3">
-                    <span className="text-[hsl(38,90%,50%)] font-bold text-xs font-mono">―</span>
-                    <span className="text-xs sm:text-sm text-zinc-200 font-medium">{feat}</span>
-                  </div>
-                ))}
-              </div>
+            {/* Overlapped Secondary Photo */}
+            <div className="relative rounded-lg overflow-hidden border border-white/20 shadow-2xl bg-black max-w-xs ml-auto -mt-12 z-10 hidden sm:block">
+              <img
+                src="https://kyiv.bking.com.ua/wp-content/uploads/2020/09/mg_5822-1024x683.jpg"
+                alt={String(t("tattoo.hairAlt"))}
+                className="w-full h-36 object-cover opacity-85"
+              />
+              <p className="p-2.5 text-[10px] text-white/80 bg-black/90 uppercase font-bold tracking-wider">
+                — Авторські ескізи та контури бороди вогнем
+              </p>
+            </div>
+          </div>
+        </div>
 
-              <div className="mt-8 flex flex-col sm:flex-row gap-4">
-                <a
-                  href="#contact"
-                  className="bg-[hsl(38,90%,50%)] hover:bg-[hsl(35,95%,42%)] text-[hsl(220,20%,9%)] font-extrabold text-xs uppercase tracking-widest px-8 py-4 rounded-xl shadow-xl transition-transform active:scale-95 text-center"
-                >
-                  Записатись на консультацію
-                </a>
-                <a
-                  href="tel:+380662636339"
-                  className="bg-zinc-900 hover:bg-zinc-800 text-white border border-zinc-700 font-bold text-xs uppercase tracking-widest px-6 py-4 rounded-xl text-center"
-                >
-                  +380 66 263 6339
-                </a>
-              </div>
-            </Reveal>
+        {/* Real Proof Stats Row */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-8 border-t border-white/15 text-center">
+          <div>
+            <span className="font-display text-4xl font-black text-[hsl(38_92%_50%)]">{String(t("tattoo.stat1Val"))}</span>
+            <span className="text-[10px] uppercase tracking-widest text-white/60 block mt-1">{String(t("tattoo.stat1Desc"))}</span>
+          </div>
+          <div>
+            <span className="font-display text-4xl font-black text-[hsl(38_92%_50%)]">{String(t("tattoo.stat2Val"))}</span>
+            <span className="text-[10px] uppercase tracking-widest text-white/60 block mt-1">{String(t("tattoo.stat2Desc"))}</span>
+          </div>
+          <div>
+            <span className="font-display text-4xl font-black text-[hsl(38_92%_50%)]">{String(t("tattoo.stat3Val"))}</span>
+            <span className="text-[10px] uppercase tracking-widest text-white/60 block mt-1">{String(t("tattoo.stat3Desc"))}</span>
+          </div>
+          <div>
+            <span className="font-display text-4xl font-black text-[hsl(38_92%_50%)]">{String(t("tattoo.stat4Val"))}</span>
+            <span className="text-[10px] uppercase tracking-widest text-white/60 block mt-1">{String(t("tattoo.stat4Desc"))}</span>
           </div>
         </div>
       </div>

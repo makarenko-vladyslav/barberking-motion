@@ -2,150 +2,287 @@
 
 import { useState } from "react";
 import { useLocale } from "@/lib/i18n";
-import { Reveal, Stagger, StaggerItem } from "@/components/motion";
 
-type ServiceItem = {
+interface ServiceItem {
   id: string;
-  category: string;
+  category: "hair" | "beard" | "complex" | "care" | "tattoo";
   title: string;
   price: string;
   duration: string;
-  desc: string;
-  tag?: string | null;
-  featured?: boolean;
-};
+  description: string;
+  badge?: string;
+  image?: string;
+  isFeatured?: boolean;
+}
 
 export default function Services() {
   const { t } = useLocale();
-  const [activeTab, setActiveTab] = useState("all");
+  const [activeTab, setActiveTab] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const items = (t("services.items") as ServiceItem[]) || [];
+  const servicesList: ServiceItem[] = [
+    {
+      id: "1",
+      category: "complex",
+      title: String(t("services.item1Title")),
+      price: "1 150 UAH",
+      duration: "75 хв",
+      description: String(t("services.item1Desc")),
+      badge: String(t("services.item1Badge")),
+      image: "https://kyiv.bking.com.ua/wp-content/uploads/2020/09/mg_6955-1024x682.jpg",
+      isFeatured: true
+    },
+    {
+      id: "2",
+      category: "hair",
+      title: String(t("services.item2Title")),
+      price: "750 UAH",
+      duration: "50 хв",
+      description: String(t("services.item2Desc")),
+      badge: "ХІТ"
+    },
+    {
+      id: "3",
+      category: "beard",
+      title: String(t("services.item3Title")),
+      price: "550 UAH",
+      duration: "35 хв",
+      description: String(t("services.item3Desc"))
+    },
+    {
+      id: "4",
+      category: "beard",
+      title: String(t("services.item4Title")),
+      price: "600 UAH",
+      duration: "45 хв",
+      description: String(t("services.item4Desc")),
+      badge: "ПРЕМІУМ"
+    },
+    {
+      id: "5",
+      category: "hair",
+      title: String(t("services.item5Title")),
+      price: "550 UAH",
+      duration: "30 хв",
+      description: String(t("services.item5Desc"))
+    },
+    {
+      id: "6",
+      category: "complex",
+      title: String(t("services.item6Title")),
+      price: "1 150 UAH",
+      duration: "80 хв",
+      description: String(t("services.item6Desc")),
+      badge: "СЕМЕЙНЕ"
+    },
+    {
+      id: "7",
+      category: "care",
+      title: String(t("services.item7Title")),
+      price: String(t("services.item7Price")),
+      duration: "25 хв",
+      description: String(t("services.item7Desc"))
+    },
+    {
+      id: "8",
+      category: "care",
+      title: String(t("services.item8Title")),
+      price: "100 UAH",
+      duration: "15 хв",
+      description: String(t("services.item8Desc"))
+    },
+    {
+      id: "9",
+      category: "tattoo",
+      title: String(t("services.item9Title")),
+      price: String(t("services.item9Price")),
+      duration: String(t("services.item9Duration")),
+      description: String(t("services.item9Desc")),
+      badge: "ЕКСКЛЮЗИВ"
+    }
+  ];
 
-  const filtered =
-    activeTab === "all" ? items : items.filter((item) => item.category === activeTab);
+  const filteredServices = servicesList.filter((item) => {
+    const matchesCategory = activeTab === "all" || item.category === activeTab;
+    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          item.description.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
+  const featuredItem = filteredServices.find((s) => s.isFeatured) || servicesList[0];
+  const listItems = filteredServices.filter((s) => s.id !== featuredItem.id);
 
   return (
-    <section id="services" className="py-24 bg-[hsl(220,20%,9%)] relative scroll-mt-16 overflow-hidden">
-      {/* Background Watermark */}
-      <div 
-        aria-hidden="true" 
-        className="absolute top-20 right-0 z-0 pointer-events-none opacity-[0.02] whitespace-nowrap text-[20vw] font-display font-extrabold text-white tracking-tighter"
-      >
-        PRICING
-      </div>
+    <section id="services" className="py-20 bg-[hsl(24_18%_7%)] text-white relative border-b border-white/10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Section Header */}
+        <div className="text-center max-w-3xl mx-auto mb-12">
+          <span className="text-xs font-bold uppercase tracking-[0.25em] text-[hsl(38_92%_50%)] mb-2 block">
+            {String(t("services.kicker"))}
+          </span>
+          <h2 className="font-display text-4xl sm:text-6xl font-extrabold uppercase tracking-tight text-white mb-4">
+            {String(t("services.title"))}
+          </h2>
+          <p className="text-white/75 text-sm sm:text-base">
+            {String(t("services.subtitle"))}
+          </p>
+        </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Reveal duration={0.48} ease={[0.33, 1, 0.68, 1]} stagger={0.07}>
-          <div className="text-center max-w-3xl mx-auto mb-10">
-            <span className="text-xs uppercase tracking-[0.3em] font-extrabold text-[hsl(38,90%,50%)] block mb-2">
-              {t("services.kicker") as string}
-            </span>
-            <h2 className="text-3xl sm:text-5xl font-display font-extrabold uppercase text-white tracking-tight">
-              {t("services.title") as string}
-            </h2>
-            <p className="mt-4 text-zinc-400 text-sm sm:text-base leading-relaxed">
-              {t("services.subtitle") as string}
-            </p>
-          </div>
-        </Reveal>
-
-        {/* Category Filters */}
-        <Reveal delay={0.1} duration={0.48} ease={[0.33, 1, 0.68, 1]} stagger={0.07}>
-          <div className="flex flex-wrap justify-center gap-2 mb-12">
+        {/* Filter Controls Bar */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-10 pb-6 border-b border-white/10">
+          {/* Category Tabs */}
+          <div className="flex flex-wrap gap-2 justify-center">
             {[
-              { id: "all", label: t("services.categories.all") as string },
-              { id: "combos", label: t("services.categories.combos") as string },
-              { id: "hair", label: t("services.categories.hair") as string },
-              { id: "beard", label: t("services.categories.beard") as string },
-              { id: "care", label: t("services.categories.care") as string },
+              { id: "all", label: String(t("services.tabs.all")) },
+              { id: "hair", label: String(t("services.tabs.hair")) },
+              { id: "beard", label: String(t("services.tabs.beard")) },
+              { id: "complex", label: String(t("services.tabs.complex")) },
+              { id: "care", label: String(t("services.tabs.care")) },
+              { id: "tattoo", label: String(t("services.tabs.tattoo")) },
             ].map((tab) => (
               <button
                 key={tab.id}
+                type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-5 py-2.5 rounded-full text-xs font-extrabold tracking-wider uppercase transition-all duration-300 ${
+                className={`px-4 py-2 rounded text-xs font-bold uppercase tracking-wider transition-all ${
                   activeTab === tab.id
-                    ? "bg-[hsl(38,90%,50%)] text-[hsl(220,20%,9%)] shadow-lg shadow-[hsl(38,90%,50%)]/20"
-                    : "bg-zinc-900/80 text-zinc-400 border border-zinc-800 hover:text-white hover:border-zinc-700"
+                    ? "bg-[hsl(38_92%_50%)] text-[hsl(24_18%_7%)] shadow-md"
+                    : "bg-white/5 text-white/70 hover:bg-white/10 hover:text-white"
                 }`}
               >
                 {tab.label}
               </button>
             ))}
           </div>
-        </Reveal>
 
-        {/* Editorial Leader-Line Price List */}
-        <Stagger className="space-y-4 max-w-4xl mx-auto">
-          {filtered.map((item) => (
-            <StaggerItem key={item.id}>
-              <div 
-                className={`group p-5 sm:p-6 rounded-2xl border transition-all duration-300 shadow-xl relative overflow-hidden ${
-                  item.featured
-                    ? "bg-zinc-900 border-[hsl(38,90%,50%)]/80 ring-1 ring-[hsl(38,90%,50%)]/30"
-                    : "bg-[hsl(220,18%,13%)] hover:bg-zinc-900 border-zinc-800/80 hover:border-[hsl(38,90%,50%)]/50"
-                }`}
+          {/* Search Input */}
+          <div className="relative w-full md:w-64">
+            <input
+              type="text"
+              placeholder={String(t("services.searchPlaceholder"))}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2 bg-white/5 border border-white/15 rounded text-xs text-white placeholder-white/40 focus:outline-none focus:border-[hsl(38_92%_50%)]"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-white/50 hover:text-white"
               >
-                <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2">
-                  <div className="flex items-center gap-3">
-                    <h3 className="font-display font-bold text-lg sm:text-xl text-white group-hover:text-[hsl(38,90%,50%)] transition-colors">
-                      {item.title}
-                    </h3>
-                    {item.tag && (
-                      <span className="px-2.5 py-0.5 rounded-full bg-[hsl(38,90%,50%)]/20 text-[hsl(38,90%,50%)] text-[10px] font-extrabold tracking-widest uppercase">
-                        {item.tag}
-                      </span>
-                    )}
-                  </div>
-                  
-                  {/* Dotted Leader Line */}
-                  <div className="hidden sm:block flex-1 border-b border-dashed border-zinc-700/60 mx-4" />
+                ЗАКРИТИ
+              </button>
+            )}
+          </div>
+        </div>
 
-                  <div className="flex items-center justify-between sm:justify-end gap-4">
-                    <span className="text-[11px] text-zinc-400 uppercase tracking-widest font-mono">
-                      {item.duration}
+        {/* Signature Featured Item Banner */}
+        {featuredItem && activeTab === "all" && !searchQuery && (
+          <div className="mb-10 bg-[hsl(24_15%_12%)] border-2 border-[hsl(38_92%_50%)] rounded-xl overflow-hidden shadow-2xl grid grid-cols-1 lg:grid-cols-12 items-center">
+            <div className="lg:col-span-5 relative h-64 lg:h-full min-h-[260px] bg-black">
+              <img
+                src={featuredItem.image}
+                alt={featuredItem.title}
+                loading="lazy"
+                className="w-full h-full object-cover opacity-90"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[hsl(24_15%_12%)] lg:bg-gradient-to-r lg:from-transparent lg:to-[hsl(24_15%_12%)]" />
+              <span className="absolute top-4 left-4 px-3 py-1 bg-[hsl(38_92%_50%)] text-[hsl(24_18%_7%)] text-[10px] font-black uppercase tracking-widest rounded">
+                {featuredItem.badge}
+              </span>
+            </div>
+            <div className="lg:col-span-7 p-6 sm:p-8 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between gap-4 mb-2">
+                  <h3 className="font-display text-3xl sm:text-4xl font-extrabold uppercase text-white">
+                    {featuredItem.title}
+                  </h3>
+                  <span className="text-xs font-bold uppercase tracking-wider text-white/60 bg-white/10 px-2.5 py-1 rounded">
+                    ЧАС: {featuredItem.duration}
+                  </span>
+                </div>
+                <p className="text-sm text-white/75 leading-relaxed mb-6 max-w-xl">
+                  {featuredItem.description}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                <div>
+                  <span className="text-[10px] uppercase tracking-widest text-white/50 block">{String(t("services.fixedCost"))}</span>
+                  <span className="font-display text-3xl sm:text-4xl font-black text-[hsl(38_92%_50%)]">
+                    {featuredItem.price}
+                  </span>
+                </div>
+                <a
+                  href="#booking"
+                  className="px-6 py-3 rounded text-xs font-extrabold uppercase tracking-widest bg-[hsl(38_92%_50%)] text-[hsl(24_18%_7%)] hover:bg-[hsl(38_92%_42%)] transition-all shadow-lg"
+                >
+                  {String(t("services.bookBtn"))}
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Structured Offer Rows List */}
+        <div className="space-y-4">
+          {listItems.map((service) => (
+            <div
+              key={service.id}
+              className="bg-[hsl(24_15%_12%)] border border-white/10 hover:border-[hsl(38_92%_50%/0.5)] rounded-lg p-5 transition-all group"
+            >
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <h3 className="font-display text-2xl font-bold uppercase tracking-tight text-white group-hover:text-[hsl(38_92%_50%)] transition-colors truncate">
+                    {service.title}
+                  </h3>
+                  {service.badge && (
+                    <span className="px-2 py-0.5 rounded bg-[hsl(38_92%_50%/0.2)] text-[hsl(38_92%_50%)] border border-[hsl(38_92%_50%/0.4)] text-[9px] font-extrabold uppercase tracking-wider shrink-0">
+                      {service.badge}
                     </span>
-                    <span className="font-display font-extrabold text-xl text-[hsl(38,90%,50%)] whitespace-nowrap">
-                      {item.price}
-                    </span>
-                  </div>
+                  )}
+                  {/* Dotted Leader Line */}
+                  <span className="hidden md:inline-block border-b border-dotted border-white/20 flex-1 mx-2" />
                 </div>
 
-                <p className="mt-2 text-xs sm:text-sm text-zinc-400 max-w-2xl leading-relaxed">
-                  {item.desc}
-                </p>
-
-                <div className="mt-4 pt-3 border-t border-zinc-800/60 flex items-center justify-between">
-                  <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-mono">
-                    Преміальна косметика Uppercut / Reuzel
+                <div className="flex items-center justify-between md:justify-end gap-6 shrink-0">
+                  <span className="text-xs font-semibold text-white/60">
+                    ЧАС: {service.duration}
                   </span>
-                  <a
-                    href="#contact"
-                    className="inline-flex items-center gap-1.5 text-xs uppercase tracking-widest font-extrabold text-[hsl(38,90%,50%)] hover:text-amber-300 transition-colors"
-                  >
-                    <span>Записатися</span>
-                    <span>→</span>
-                  </a>
+                  <span className="font-display text-2xl font-extrabold text-[hsl(38_92%_50%)]">
+                    {service.price}
+                  </span>
                 </div>
               </div>
-            </StaggerItem>
-          ))}
-        </Stagger>
 
-        {/* Section Footnote Line & Secondary CTA */}
-        <Reveal delay={0.2} duration={0.48} ease={[0.33, 1, 0.68, 1]} stagger={0.07}>
-          <div className="mt-12 text-center pt-8 border-t border-zinc-800/80 max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-400">
-            <span className="font-mono text-zinc-500">
-              {t("services.footnote") as string}
-            </span>
-            <a
-              href="#calculator"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-white font-extrabold uppercase tracking-wider hover:border-[hsl(38,90%,50%)] transition-colors"
-            >
-              <span>{t("cta.calc") as string}</span>
-              <span>→</span>
-            </a>
-          </div>
-        </Reveal>
+              <p className="text-xs text-white/65 leading-relaxed max-w-3xl mb-3">
+                {service.description}
+              </p>
+
+              <div className="flex items-center justify-end pt-2 border-t border-white/5">
+                <a
+                  href="#booking"
+                  className="text-[11px] font-extrabold uppercase tracking-widest text-[hsl(38_92%_50%)] hover:underline"
+                >
+                  ЗАПИСАТИСЯ НА ПОСЛУГУ →
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Footnote & Secondary CTA Link */}
+        <div className="mt-10 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/60">
+          <p className="italic">
+            {String(t("services.footnote"))}
+          </p>
+          <a
+            href="#calculator"
+            className="font-extrabold uppercase tracking-wider text-[hsl(38_92%_50%)] hover:underline shrink-0"
+          >
+            {String(t("services.calcCTA"))} →
+          </a>
+        </div>
       </div>
     </section>
   );
