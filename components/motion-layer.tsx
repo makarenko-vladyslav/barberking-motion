@@ -2,8 +2,17 @@
 
 import { useEffect } from "react";
 
-/** Nothing may stay hidden longer than this, whatever the page turns out to be. */
-const FAILSAFE_MS = 2500;
+/**
+ * How far up the viewport an element must come before it is revealed, as a
+ * fraction of viewport height. At 0.85 the movement plays where a reader is
+ * actually looking; at the bottom edge it finishes while the element is still
+ * a sliver at the base of the screen, and the reader only ever meets the
+ * aftermath.
+ */
+const REVEAL_LINE = 0.85;
+
+/** How often to re-check content that can enter view without a scroll. */
+const SWEEP_MS = 400;
 
 /**
  * Content that carries its own entrance: a heading, a line of copy, a picture, a
@@ -47,9 +56,10 @@ const LANDMARK = "body,main,section,header,footer,aside,nav";
  *  - each element is observed, never its container. A barbershop's ticker is a
  *    2623px-wide strip: an observer watching it never fires, so its words were
  *    hidden and stayed hidden. The words themselves are on screen and fire fine.
- *  - a timer reveals anything still hidden after FAILSAFE_MS. Deciding "is this
- *    already animated?" is a race — framer-motion writes its transform after
- *    this effect runs — and a race is not something to defend content with.
+ *  - reveal happens when an element reaches REVEAL_LINE, never at the bottom
+ *    edge of the screen. Measured on the shipped site: everything below the fold
+ *    was revealed 2.5s after load by a blanket safety timer, so by the time the
+ *    reader scrolled, all 196 entrances had already played to an empty room.
  *
  * Nothing is hidden until JavaScript has marked it. If this never runs, the page
  * is simply static: content stuck at `opacity: 0` is the one failure mode that
@@ -70,33 +80,86 @@ export function MotionLayer() {
       if (parent && !parent.dataset.motionRole) parent.dataset.motionRole = inferRole(parent);
     }
 
+    const pending = new Set(items.map(({ el }) => el));
+    const reveal = (el: HTMLElement) => {
+      el.dataset.motionItem = "seen";
+      pending.delete(el);
+      io.unobserve(el); // once — re-firing on scroll-back is nausea
+    };
+
     const io = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          (entry.target as HTMLElement).dataset.motionItem = "seen";
-          io.unobserve(entry.target); // once — re-firing on scroll-back is nausea
+          if (entry.isIntersecting) reveal(entry.target as HTMLElement);
         }
       },
-      // Fires just before the element is fully in view, so the movement finishes
-      // as the reader arrives rather than starting under their eyes.
-      { rootMargin: "0px 0px -8% 0px", threshold: 0.01 },
+      // The bottom edge is pulled up so an element is revealed once it is
+      // properly in view, not while it is a sliver at the base of the screen.
+      { rootMargin: `0px 0px -${Math.round((1 - REVEAL_LINE) * 100)}% 0px`, threshold: 0 },
     );
 
-    for (const { el } of items) io.observe(el);
+    for (const el of pending) io.observe(el);
 
-    const failsafe = setTimeout(() => {
-      for (const { el } of items) el.dataset.motionItem = "seen";
-      io.disconnect();
-    }, FAILSAFE_MS);
+    // A second, independent way in: geometry on scroll. It exists because an
+    // observer can be defeated by layout the page does to itself, and content
+    // left at `opacity: 0` is the one outcome that must never happen. It reveals
+    // only what is genuinely on screen — an earlier blanket timer revealed the
+    // whole page 2.5s after load, so by the time the reader scrolled, every
+    // entrance had already played to an empty room.
+    let queued = false;
+    const sweep = () => {
+      queued = false;
+      const line = revealLine(window.innerHeight, window.scrollY, document.documentElement.scrollHeight);
+      for (const el of [...pending]) {
+        const box = el.getBoundingClientRect();
+        if (box.top < line && box.bottom > 0) reveal(el);
+      }
+    };
+    const onScroll = () => {
+      if (queued || pending.size === 0) return;
+      queued = true;
+      requestAnimationFrame(sweep);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    onScroll(); // whatever is already on screen must not wait for a scroll
+
+    // Content can enter view without the window moving: a ticker drifts, an
+    // accordion opens, a late image reflows the page below it. One word of the
+    // barbershop's marquee was caught this way — it sailed in between scroll
+    // events and stayed invisible for good. This tick stops on its own once
+    // everything has been revealed.
+    const ticker = window.setInterval(() => {
+      if (pending.size === 0) {
+        window.clearInterval(ticker);
+        return;
+      }
+      sweep();
+    }, SWEEP_MS);
 
     return () => {
-      clearTimeout(failsafe);
+      window.clearInterval(ticker);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
       io.disconnect();
     };
   }, []);
 
   return null;
+}
+
+/**
+ * The y a box must rise above to be revealed, in viewport coordinates.
+ *
+ * Normally the reader's eye line. On the LAST screen it drops to the bottom of
+ * the viewport, because there is no scroll left and anything below the line can
+ * never rise past it — the barbershop's footer credit sat at 828px against a
+ * line at 765 and stayed invisible for good.
+ */
+export function revealLine(viewportHeight: number, scrollY: number, documentHeight: number): number {
+  const atEnd = scrollY + viewportHeight >= documentHeight - 2;
+  return atEnd ? viewportHeight : viewportHeight * REVEAL_LINE;
 }
 
 /** An element to reveal, and its position among the siblings it arrives with. */
